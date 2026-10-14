@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CGHS Claim Form Filler</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CGHS Claim">
 <style>
 :root{--bg:#eef1f4;--panel:#ffffff;--ink:#1d2733;--muted:#5b6876;--line:#cfd6de;--accent:#1f5f8b;--field:#f7f9fb;color-scheme:light;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -553,7 +560,7 @@ async function doPdf(){
 
 
 /* ---------- Bills OCR (OCR.space online API) ---------- */
-const OCR_KEY='K81749613088957'; // ocr.space/ocrapi/freekey se free key leke yahan daalo
+const OCR_KEY='helloworld'; // ocr.space/ocrapi/freekey se free key leke yahan daalo
 let bills={opd:[],ipd:[]},ocrCtl=null;
 const OM=document.getElementById('ocrMsg'),BL=document.getElementById('billList'),BR=document.getElementById('bRead'),BF=document.getElementById('billFiles');
 try{const b=JSON.parse(localStorage.getItem(KEY+'-bills')||'null');if(b&&b.opd&&b.ipd)bills=b}catch(e){}
@@ -668,5 +675,6 @@ document.getElementById('print').onclick=()=>window.print();
 document.getElementById('reset').onclick=()=>{try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+'-bills')}catch(e){}location.reload()};
 load();setMode(mode);
 </script>
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 </body>
 </html>
