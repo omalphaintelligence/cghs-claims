@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CGHS Claim Form Filler</title>
+<style>
+:root{--bg:#eef1f4;--panel:#ffffff;--ink:#1d2733;--muted:#5b6876;--line:#cfd6de;--accent:#1f5f8b;--field:#f7f9fb;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151a20;--panel:#1e252d;--ink:#e3e8ee;--muted:#9aa6b2;--line:#35404c;--accent:#6fb0dd;--field:#252d36;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151a20;--panel:#1e252d;--ink:#e3e8ee;--muted:#9aa6b2;--line:#35404c;--accent:#6fb0dd;--field:#252d36;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:minmax(300px,430px) 1fr;gap:20px;padding:16px;max-width:1400px;margin:0 auto}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;align-self:start}
+.panel h1{font-size:17px;margin:0 0 4px}
+.panel p.sub{margin:0 0 12px;color:var(--muted);font-size:12.5px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--accent);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.tabs button{border-radius:0;background:transparent;color:var(--accent);padding:9px}
+.tabs button.on{background:var(--accent);color:#fff}
+fieldset{border:1px solid var(--line);border-radius:8px;margin:0 0 12px;padding:8px 10px 10px}
+legend{font-weight:600;font-size:12.5px;color:var(--accent);padding:0 4px}
+details>summary{cursor:pointer;font-weight:600;font-size:12.5px;color:var(--accent);margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--muted);margin:7px 0 2px}
+input,select,textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);font:inherit}
+textarea{resize:vertical;min-height:52px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.yn{display:flex;gap:6px;align-items:center;justify-content:space-between;margin-top:7px}
+.yn span{font-size:12px;color:var(--muted);flex:1}
+.yn select{width:auto}
+.total{margin-top:8px;padding:8px;border-radius:6px;background:var(--field);font-weight:600;font-size:13px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:sticky;bottom:0;background:var(--panel);padding:10px 0 2px}
+button{flex:1;padding:10px;border:0;border-radius:7px;font:600 14px system-ui,sans-serif;cursor:pointer;background:var(--accent);color:#fff}
+button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.bill{display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:12.5px}
+.bill .h{overflow:hidden}.bill .h small{display:block;color:var(--muted)}
+.bill select,.bill input{width:auto;padding:4px 6px}.bill input{width:80px}
+.bill button{flex:none;padding:4px 9px;background:transparent;color:var(--muted);border:1px solid var(--line)}
+.ipd-only{display:none}
+body.ipd .ipd-only{display:block}
+body.ipd .opd-only{display:none}
+.prevbox{overflow-x:auto;display:flex;flex-direction:column;gap:16px}
+/* ---------- A4 sheet ---------- */
+.sheet{width:210mm;height:297mm;overflow:hidden;filter:grayscale(1);margin:0 auto;background:#fff;color:#000;padding:12mm 16mm 12mm 18mm;font:10.5pt/1.35 Arial,Helvetica,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.sheet .top{text-align:right;font-size:10pt}
+.sheet .h1{text-align:center;font-weight:bold;text-decoration:underline;font-size:12pt;margin-top:4px}
+.sheet .h2{text-align:center;font-weight:bold;text-decoration:underline;font-size:10.5pt;margin-top:6px}
+.sheet .h3{text-align:center;font-size:10pt}
+.sheet table{width:100%;border-collapse:collapse}
+.sheet td{vertical-align:top;padding:1.5px 0}
+.sheet .n{width:7mm}.sheet .l{width:7mm}
+.sheet .gap{height:9px}
+.sheet s{text-decoration:line-through}
+.sheet .right{text-align:right;white-space:nowrap}
+.sheet .decl{text-align:justify;margin:4px 0 0 7mm}
+.sheet .center{text-align:center}
+.sheet .dot{display:inline-block;min-width:40mm;border-bottom:1px dotted #000;height:1em;vertical-align:baseline}
+.sheet.app{font:11pt/1.55 "Times New Roman",Times,serif}
+.sheet.app td{padding:2.5px 0}
+.sheet.cert{font-size:9.8pt;line-height:1.3;padding-top:9mm;padding-bottom:8mm}
+.sheet.cert p{margin:3.5px 0;text-align:justify}
+.sheet.cert .sig{margin-top:14px}
+.sheet .sig{text-align:right;margin-top:26px}
+@media print{
+  @page{size:A4;margin:0}
+  :root{padding:0}
+  body{background:#fff}
+  .panel{display:none}
+  .wrap{display:block;padding:0;max-width:none}
+  .prevbox{display:block}
+  .sheet{box-shadow:none;margin:0;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="gate" style="position:fixed;inset:0;z-index:99;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px">
+<form id="gateF" class="panel" style="max-width:340px;width:100%;text-align:center" onsubmit="return false">
+<h1>CGHS Claim Form Filler</h1><p class="sub">Passcode daalo</p>
+<input id="gateIn" type="password" autocomplete="current-password" aria-label="Passcode" style="text-align:center;font-size:18px">
+<button type="submit" style="width:100%;margin-top:10px">Kholo</button>
+<div id="gateMsg" style="color:#b3261e;font-size:12.5px;min-height:1.2em;margin-top:6px"></div></form></div>
+<script>
+(function(){const H='1d942cff8b062eea091965e9b6a0b83f72d352a1dfdc3b49645fe090cd012456',G=document.getElementById('gate');
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+try{if(localStorage.getItem('cghs-pass')===H){G.remove();return}}catch(e){}
+document.getElementById('gateF').addEventListener('submit',async e=>{e.preventDefault();const h=await sha(document.getElementById('gateIn').value.trim());
+if(h===H){try{localStorage.setItem('cghs-pass',H)}catch(e){}G.remove()}else document.getElementById('gateMsg').textContent='Galat passcode.'});})();
+</script>
+<div class="wrap">
+<form class="panel" id="f" onsubmit="return false">
+  <h1>CGHS Medical Reimbursement Claim</h1>
+  <p class="sub">Common details ek baar bharo — OPD aur IPD dono me lagenge. Amounts me "700+700" likh sakte ho.</p>
+  <div class="tabs"><button type="button" data-m="opd" class="on">OPD claim</button><button type="button" data-m="ipd">IPD (Indoor) claim</button></div>
+
+  <fieldset id="ocrBox"><legend>Bills se auto-fill (photo / PDF)</legend>
+    <input type="file" id="billFiles" multiple accept="image/*">
+    <div class="row" style="margin-top:8px"><button type="button" id="bRead" disabled>Bills padho</button><button type="button" class="ghost" id="bClear">Bills hatao</button></div>
+    <div id="ocrMsg" style="font-size:12px;color:var(--muted);margin-top:6px">Loading…</div>
+    <div id="billList"></div>
+  </fieldset>
+  <fieldset><legend>1. Principal Card Holder</legend>
+    <label>(a) Name &amp; Designation</label><input name="name" placeholder="e.g. RAM KUMAR, AUDITOR PCDA LUCKNOW">
+    <div class="row">
+      <div><label>(b) CGHS Ben ID No.</label><input name="benid"></div>
+      <div><label>(c) Employee Code No.</label><input name="emp"></div>
+    </div>
+    <label>(d) Ward Entitlement</label>
+    <select name="ward"><option>Private</option><option selected>Semi-Private</option><option>General</option></select>
+    <label>(e) Full Address</label><input name="addr">
+    <label>(f) Mobile / e-mail</label><input name="mob">
+  </fieldset>
+
+  <fieldset><legend>2. Patient</legend>
+    <label><input type="checkbox" name="same" checked style="width:auto"> Patient = card holder (Self)</label>
+    <label>(a) Patient's Name</label><input name="pname">
+    <div class="row">
+      <div><label>(b) Patient's Ben ID</label><input name="pben"></div>
+      <div><label>(c) Relationship</label><input name="rel" value="Self"></div>
+    </div>
+  </fieldset>
+
+  <!-- ===== OPD ===== -->
+  <div class="opd-only">
+  <fieldset><legend>3–4. Hospital / Diagnostic Centre</legend>
+    <label>Name &amp; address (ek line = ek hospital)</label>
+    <textarea name="o_hosp" rows="3"></textarea>
+    <div class="yn"><span>4. Empanelled under CGHS</span><select name="o_emp4"><option>Yes</option><option>No</option></select></div>
+  </fieldset>
+  <fieldset><legend>5. Treatment</legend>
+    <label>(a) OPD Treatment / Test &amp; investigations</label><input name="o_opdtxt" value="Test &amp; Investigation">
+    <label>(b) Indoor Treatment</label><input name="o_indtxt" value="No">
+    <div class="yn"><span>(c) Emergency</span><select name="o_emg"><option>Yes</option><option selected>No</option></select></div>
+    <div class="yn"><span>(d) Prior permission</span><select name="o_perm"><option selected>Yes</option><option>No</option></select></div>
+    <div class="yn"><span>(e) Health insurance</span><select name="o_ins"><option>Yes</option><option selected>No</option></select></div>
+    <label>(e) Insurance amount (agar Yes)</label><input name="o_insamt">
+    <label>(f) Medical Advance</label><input name="o_adv" value="Nil">
+  </fieldset>
+  <fieldset><legend>(g) Amount claimed (Rs.)</legend>
+    <label>OPD Treatment</label><input name="o_a_opd" value="0">
+    <label>Indoor Treatment</label><input name="o_a_ind" value="0">
+    <label>Tests / Investigation</label><input name="o_a_test" value="0">
+    <div class="total" id="o_tot"></div>
+  </fieldset>
+  </div>
+
+  <!-- ===== IPD ===== -->
+  <div class="ipd-only">
+  <fieldset><legend>3–4. Hospital</legend>
+    <label>Name &amp; address (ek line = ek hospital)</label>
+    <textarea name="i_hosp" rows="2"></textarea>
+    <div class="yn"><span>4. Empanelled under CGHS</span><select name="i_emp4"><option>Yes</option><option>No</option></select></div>
+  </fieldset>
+  <fieldset><legend>5. Treatment</legend>
+    <label>(a) OPD Treatment / Test &amp; investigations</label><input name="i_opdtxt" value="No">
+    <label>(b) Indoor Treatment</label><input name="i_indtxt" value="Yes">
+    <div class="yn"><span>(c) Emergency</span><select name="i_emg"><option>Yes</option><option selected>No</option></select></div>
+    <div class="yn"><span>(d) Prior permission</span><select name="i_perm"><option selected>Yes</option><option>No</option></select></div>
+    <div class="yn"><span>(e) Health insurance</span><select name="i_ins"><option>Yes</option><option selected>No</option></select></div>
+    <label>(e) Insurance amount (agar Yes)</label><input name="i_insamt">
+    <label>(f) Medical Advance (Rs. ya Nil)</label><input name="i_adv" value="Nil">
+  </fieldset>
+  <fieldset><legend>(g) Amount claimed (Rs.)</legend>
+    <label>OPD Treatment</label><input name="i_a_opd" value="0">
+    <label>Indoor Treatment</label><input name="i_a_ind" value="0">
+    <label>Tests / Investigation</label><input name="i_a_test" value="0">
+    <div class="total" id="i_tot"></div>
+  </fieldset>
+
+  <fieldset><legend>Application for Medical Reimbursement</legend>
+    <label>2. Office in which employed</label><input name="office">
+    <div class="row">
+      <div><label>3. Pay of Govt Servant</label><input name="pay"></div>
+      <div><label>4. Place of duty</label><input name="duty"></div>
+    </div>
+    <label>7. Place at which patient fell ill</label><input name="illplace">
+    <label>8(a) Doctor name &amp; designation</label><input name="doc">
+    <div class="row">
+      <div><label>8(b) Date of consultation</label><input name="dconsult"></div>
+      <div><label>8(c) Date of injection</label><input name="dinj"></div>
+    </div>
+    <label>8(d) Charges of pathological tests (Rs.)</label><input name="pathchg">
+    <label>8(e) Name of pathological tests</label><input name="pathname">
+    <label>8(f) Charges of other tests (Rs.)</label><input name="othchg">
+    <label>9. Cost of medicines (Rs.)</label><input name="medcost">
+    <label>11. Less advance taken (Rs.)</label><input name="lessadv" value="0">
+    <div class="total" id="net"></div>
+    <label>Designation (signature ke niche)</label><input name="desg">
+  </fieldset>
+
+  <details><summary>Certificate "B" — hospital/doctor wale fields (optional)</summary>
+  <fieldset><legend>Patient line</legend>
+    <div class="row">
+      <div><label>Mrs/Mr/Miss</label><select name="c_title"><option>Mrs.</option><option selected>Miss</option><option>Mr.</option></select></div>
+      <div><label>Relation</label><select name="c_rel"><option value="">— (Self)</option><option>W/o</option><option>Son of</option><option>Daughter of</option><option>Mother of</option><option>Father of</option></select></div>
+    </div>
+    <label>Relation ka naam (Govt servant)</label><input name="c_relname">
+  </fieldset>
+  <fieldset><legend>Part A</legend>
+    <label>I, Dr. (in-charge)</label><input name="c_dr">
+    <label>(a) Admitted on advice of</label><input name="c_advice">
+    <label>(b) Medicines (ek line: naam | price)</label><textarea name="c_meds" rows="3"></textarea>
+    <div class="yn"><span>(c) Injections for immunizing/prophylactic</span><select name="c_inj"><option value="were not" selected>were not</option><option value="were">were</option></select></div>
+    <label>(d) Suffering from</label><input name="c_dis">
+    <div class="row">
+      <div><label>Treatment from</label><input name="c_from"></div>
+      <div><label>to</label><input name="c_to"></div>
+    </div>
+    <div class="row">
+      <div><label>(e) X-ray/lab expenditure Rs.</label><input name="c_labrs"></div>
+      <div><label>at (hospital/lab)</label><input name="c_labat"></div>
+    </div>
+    <label>(f) Specialist Dr.</label><input name="c_spec">
+    <label>Approval of (Chief Admin. Medical Officer)</label><input name="c_cmo">
+  </fieldset>
+  <fieldset><legend>Part B</legend>
+    <label>Special nurses expenditure Rs.</label><input name="c_nurse">
+  </fieldset>
+  </details>
+  </div>
+
+  <fieldset><legend>(h) Bank</legend>
+    <label>Name of the Bank</label><input name="bank">
+    <div class="row">
+      <div><label>SB A/c No.</label><input name="acc"></div>
+      <div><label>IFSC Code</label><input name="ifsc"></div>
+    </div>
+    <label>Branch MICR Code</label><input name="micr">
+  </fieldset>
+
+  <fieldset><legend>Declaration</legend>
+    <div class="row">
+      <div><label>Date</label><input name="date" type="date"></div>
+      <div><label>Place</label><input name="place"></div>
+    </div>
+  </fieldset>
+
+    <div class="btns">
+    <button type="button" id="bDocx">Word (.docx)</button>
+    <button type="button" id="bPdf">PDF</button>
+    <button type="button" class="ghost" id="print">Print</button>
+    <button type="button" class="ghost" id="reset">Reset</button>
+  </div>
+  <div id="msg" style="font-size:12px;color:var(--muted);min-height:1.2em;margin-top:6px"></div>
+</form>
+
+<div class="prevbox" id="prev"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.iife.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const F=document.getElementById('f'),P=document.getElementById('prev'),MSG=document.getElementById('msg'),KEY='cghs-public-v1';
+let mode='opd';
+const v=n=>(F.elements[n]?.value||'').trim();
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function words(n){
+  n=Math.round(n); if(n<=0)return'ZERO';
+  const a=['','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN','ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN','SIXTEEN','SEVENTEEN','EIGHTEEN','NINETEEN'];
+  const b=['','','TWENTY','THIRTY','FORTY','FIFTY','SIXTY','SEVENTY','EIGHTY','NINETY'];
+  const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?' '+a[x%10]:'');
+  const three=x=>(x>=100?a[Math.floor(x/100)]+' HUNDRED'+(x%100?' ':''):'')+(x%100?two(x%100):'');
+  let o=[];const cr=Math.floor(n/1e7);n%=1e7;const la=Math.floor(n/1e5);n%=1e5;const th=Math.floor(n/1e3);n%=1e3;
+  if(cr)o.push(three(cr)+' CRORE');if(la)o.push(two(la)+' LAKH');if(th)o.push(two(th)+' THOUSAND');if(n)o.push(three(n));
+  return o.join(' ');
+}
+const title=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+const fmt=x=>Number.isInteger(x)?String(x):x.toFixed(2);
+function amt(s){
+  s=(s||'').replace(/[^0-9.+]/g,'');const parts=s.split('+').filter(Boolean);
+  const sum=parts.reduce((t,p)=>t+(parseFloat(p)||0),0);
+  return{sum,txt:'Rs. '+fmt(sum)+'/-'+(parts.length>1?' ('+parts.join('+')+')':''),blank:!parts.length};
+}
+const rs=s=>{const a=amt(s);return a.blank?'':a.txt};
+function dmy(d){if(!d)return'';const[y,m,dd]=d.split('-');return dd+'.'+m+'.'+y}
+
+/* ---------- data model (shared by preview, Word, PDF) ---------- */
+function model(){
+  if(F.elements.same.checked){F.elements.pname.value=F.elements.name.value;F.elements.pben.value=F.elements.benid.value;F.elements.rel.value='Self'}
+  const p=mode==='opd'?'o_':'i_';
+  const o=amt(v(p+'a_opd')),i=amt(v(p+'a_ind')),t=amt(v(p+'a_test'));const total=o.sum+i.sum+t.sum;
+  const hosps=v(p+'hosp').split('\n').map(x=>x.trim()).filter(Boolean);
+  const M={mode,name:v('name'),benid:v('benid'),emp:v('emp'),ward:v('ward'),addr:v('addr'),mob:v('mob'),
+    pname:v('pname'),pben:v('pben'),rel:v('rel'),bank:v('bank'),acc:v('acc'),ifsc:v('ifsc'),micr:v('micr'),
+    date:dmy(v('date')),place:v('place'),
+    claim:{hosps,emp4:v(p+'emp4'),opdtxt:v(p+'opdtxt'),indtxt:v(p+'indtxt'),emg:v(p+'emg'),perm:v(p+'perm'),ins:v(p+'ins'),
+      insamt:v(p+'ins')==='Yes'?v(p+'insamt'):'',adv:v(p+'adv'),o:o.txt,i:i.txt,t:t.txt,total,words:words(total)}};
+  if(mode==='ipd'){
+    const adv=amt(v('lessadv')).sum,net=total-adv;
+    const relLine=M.pname+(M.rel&&M.rel.toLowerCase()!=='self'?' ('+M.rel+')':' (Self)');
+    M.app={office:v('office'),pay:v('pay'),duty:v('duty'),relLine,illplace:v('illplace'),doc:v('doc'),dconsult:v('dconsult'),dinj:v('dinj'),
+      pathchg:rs(v('pathchg')),pathname:v('pathname'),othchg:rs(v('othchg')),medcost:rs(v('medcost')),total,adv,net,netWords:title(words(net)),desg:v('desg')};
+    const meds=v('c_meds').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const[a,b]=x.split('|').map(s=>(s||'').trim());return[a,b?(rs(b)||b):'']});
+    while(meds.length<2)meds.push(['','']);
+    M.cert={title:v('c_title'),pshort:M.pname.split(',')[0],rel:v('c_rel'),relname:v('c_relname'),hosp:hosps[0]||'',dr:v('c_dr'),advice:v('c_advice'),
+      meds,inj:v('c_inj'),dis:v('c_dis'),from:v('c_from'),to:v('c_to'),labrs:v('c_labrs'),labat:v('c_labat'),spec:v('c_spec'),cmo:v('c_cmo'),nurse:v('c_nurse')};
+  }
+  return M;
+}
+
+/* ---------- HTML preview ---------- */
+const B=t=>t?'<b>'+esc(t)+'</b>':'';
+const D=(t,w)=>t?'<b>'+esc(t)+'</b>':'<span class="dot"'+(w?' style="min-width:'+w+'mm"':'')+'></span>';
+const yn=val=>val==='Yes'?'<b>Yes</b>/<s>No</s>':'<s>Yes</s>/<b>No</b>';
+
+function claimHTML(M){const c=M.claim;
+  const hosp=c.hosps.length>1?c.hosps.map((h,k)=>'<div><b>'+(k+1)+'. '+esc(h)+'</b></div>').join(''):B(c.hosps[0]||'');
+  const ins=c.insamt?' &nbsp;<b>('+esc(c.insamt)+')</b>':'';
+  return `<div class="sheet">
+<div class="top"><i>For</i> serving employees</div>
+<div class="h1">CENTRAL GOVERNMENT HEALTH SCHEME</div>
+<div class="h2">MEDICAL REIMBURSEMENT CLAIM FORM</div>
+<div class="h3">(To be filled up by the Principal Card holder in <b>BLOCK LETTERS)</b></div>
+<div class="gap"></div>
+<table>
+<tr><td class="n">1-</td><td colspan="3">(a) Name &amp; Desgn. of the Principal CGHS Card Holder:- ${B(M.name)}</td></tr>
+<tr><td></td><td class="l">(b)</td><td style="width:52%">CGHS Ben ID No.</td><td>:- ${B(M.benid)}</td></tr>
+<tr><td></td><td>(c)</td><td>Employee Code No.</td><td>:- ${B(M.emp)}</td></tr>
+<tr><td></td><td>(d)</td><td>Ward Entitlement- Pvt./Semi-Pvt./General</td><td>:- ${B(M.ward)}</td></tr>
+<tr><td></td><td>(e)</td><td>Full Address</td><td>:- ${B(M.addr)}</td></tr>
+<tr><td></td><td>(f)</td><td>Mobile telephone No. and e-mail address, if any</td><td>:- ${B(M.mob)}</td></tr>
+<tr><td colspan="4" class="gap"></td></tr>
+<tr><td>2-</td><td>(a)</td><td>Patient's Name</td><td>:- ${B(M.pname)}</td></tr>
+<tr><td></td><td>(b)</td><td>Patient's CGHS Ben ID No.</td><td>:- ${B(M.pben)}</td></tr>
+<tr><td></td><td>(c)</td><td>Relationship with the Principal CGHS cardholder</td><td>:- ${B(M.rel)}</td></tr>
+<tr><td colspan="4" class="gap"></td></tr>
+<tr><td>3-</td><td colspan="3">Name &amp; address of the hospital/diagnostic center/imaging center where treatment is taken or tests done:- ${hosp}</td></tr>
+<tr><td colspan="4" class="gap"></td></tr>
+<tr><td>4-</td><td colspan="3">Whether the hospital/diagnostic/imaging center is empanelled under CGHS :- ${yn(c.emp4)}</td></tr>
+<tr><td colspan="4" class="gap"></td></tr>
+<tr><td>5-</td><td colspan="3">Treatment for which reimbursement claimed</td></tr>
+<tr><td></td><td>(a)</td><td>OPD Treatment / Test &amp; investigations</td><td>:- ${B(c.opdtxt)}</td></tr>
+<tr><td></td><td>(b)</td><td>Indoor Treatment</td><td>:- ${B(c.indtxt)}</td></tr>
+<tr><td></td><td>(c)</td><td>Whether treatment was taken in emergency</td><td class="right">${yn(c.emg)}</td></tr>
+<tr><td></td><td>(d)</td><td>Whether prior permission was taken for the treatment</td><td class="right">${yn(c.perm)}</td></tr>
+<tr><td></td><td>(e)</td><td>Whether subscribing to any health/medical insurance scheme, if yes, amount claimed/received</td><td class="right">${yn(c.ins)}${ins}</td></tr>
+<tr><td colspan="4" class="gap"></td></tr>
+<tr><td></td><td>(f)</td><td>Details of Medical Advance taken, if any</td><td>:- ${B(c.adv)}</td></tr>
+<tr><td></td><td>(g)</td><td colspan="2">Total amount claimed</td></tr>
+<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;(a) OPD Treatment</td><td>:- <b>${c.o}</b></td></tr>
+<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;(b) Indoor Treatment</td><td>:- <b>${c.i}</b></td></tr>
+<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;(c) Tests/Investigation</td><td>:- <b>${c.t}</b></td></tr>
+<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<b>Total</b></td><td>:- <b>Rs. ${fmt(c.total)}/-</b></td></tr>
+<tr><td></td><td colspan="3" class="center"><b>(RUPEES ${c.words} ONLY)</b></td></tr>
+<tr><td colspan="4" class="gap"></td></tr>
+<tr><td></td><td>(h)</td><td>Name of the Bank: ${B(M.bank)}</td><td>SB A/c No. : ${B(M.acc)}</td></tr>
+<tr><td></td><td></td><td>Branch MICR Code: ${D(M.micr,35)}</td><td>IFSC Code - ${B(M.ifsc)}</td></tr>
+</table>
+<div class="gap"></div>
+<div class="h2" style="margin-top:4px">DECLARATION</div>
+<p class="decl">I hereby declare that the statements made in the application are true to the best of my knowledge and belief and the person for whom medical expenses were incurred is wholly dependent on me. I am a CGHS beneficiary and the CGHS card was valid at the time of treatment. I agree for the reimbursement as is admissible under the rules.</p>
+<div class="gap"></div>
+<table style="margin-left:7mm;width:calc(100% - 7mm)">
+<tr><td>Date : ${B(M.date)}</td><td></td></tr>
+<tr><td style="padding-top:22px">Place: ${B(M.place)}</td><td class="right" style="padding-top:22px"><b>Signature of the Principal CGHS card holder</b></td></tr>
+</table></div>`;
+}
+function appRows(M){const a=M.app;return[
+ ['1.','Name & Designation of Govt Servant :-',M.name],['2.','Office in which employed :-',a.office],['3.','Pay of the Govt Servant :-',a.pay],
+ ['4.','Place of duty :-',a.duty],['5.','Actual residential address :-',M.addr],['6.','Name of patient & his/her relationship with Govt Servant :-',a.relLine],
+ ['7.','Place at which the patient fell ill :-',a.illplace],['8.','(a). Name of doctor & designation :-',a.doc],['','(b). Date of consultation :-',a.dconsult],
+ ['','(c). Date of injection :-',a.dinj],['','(d). Charge of pathological or similar tests :-',a.pathchg],['','(e). Name of pathological tests :-',a.pathname],
+ ['','(f). Charges of other tests :-',a.othchg],['9.','Cost of medicines :-',a.medcost],['10.','Total amount claimed :-','Rs. '+fmt(a.total)+'/-'],
+ ['11.','Less advance taken :-','Rs. '+fmt(a.adv)+'/-'],['12.','Net amount claimed :-','Rs. '+fmt(a.net)+'/- (Rupees '+a.netWords+' only)']]}
+const ENCL=['1. Prescription','2. Cash memo','3. Dispensary referral slip','4. Final Bill'];
+const APP_DECL='I hereby declare that the treatment in this application are true to the best of my knowledge and belief and that the patient is wholly dependent on me for which I have claimed refund of medical expenses.';
+function appHTML(M){
+  document.getElementById('net').textContent='10. Total Rs. '+fmt(M.app.total)+'/-  ·  12. Net Rs. '+fmt(M.app.net)+'/-';
+  return `<div class="sheet app">
+<div class="center" style="font-weight:bold;text-decoration:underline;margin:6mm 0 6mm">Application for Medical Reimbursement</div>
+<table>${appRows(M).map(r=>`<tr><td style="width:9mm"><b>${r[0]}</b></td><td>${esc(r[1])} ${D(r[2])}</td></tr>`).join('')}</table>
+<div style="margin-top:10mm">Enclosures:-</div>${ENCL.map(e=>'<div>'+e+'</div>').join('')}
+<p style="margin-top:10mm;text-align:justify">${APP_DECL}</p>
+<table style="margin-top:12mm"><tr><td>Date: ${D(M.date,25)}</td><td class="right">Signature of Govt servant</td></tr>
+<tr><td></td><td class="right">Designation: ${D(M.app.desg,25)}</td></tr></table></div>`;
+}
+/* cert paragraphs as segments: strings = plain, {f:value,w:mm} = fill, {yn:...} */
+function certParas(M){const c=M.cert,h=c.hosp,f=(x,w)=>({f:x,w});return{
+ intro:[['(To be completed in the case of patients who are admitted to Hospital for treatment)'],
+  ['Certified granted to '+c.title+' ',f(c.pshort,60)],
+  c.rel?[c.rel+' ',f(c.relname,70)]:['Mother/W/o/Son/Daughter/Mother/Father of ',f('',60)],
+  ['Employed in the ',f(M.app.office,90)]],
+ a1:[['(To be signed by the medical officer in-charge of the case of ',f(h,50),' hospital)'],['I, Dr. ',f(c.dr,70),' hereby certify-'],
+  ['(a) that the patient was admitted to hospital on the advice of ',f(c.advice,55),' (name of the medical officer)/on my advice.'],
+  ['(b) that the patient has been under treatment at ',f(h,45),' and that the undermentioned medicines prescribed by me in this connection were essential for the recovery/prevention of serious deterioration in the condition of the patient. The medicines are not stocked in the ',f(h,40),' (name of the hospital) for supply to private patients and do not include proprietary preparations for which cheaper substances of equal therapeutic value are available nor preparations which are primary foods, toilets or disinfectants.']],
+ a2:[['(c) that the injection administered ',{inj:c.inj},' for immunizing or prophylactic purposes;'],
+  ['(d) that the patient is/was suffering from ',f(c.dis,50),' and is/was under treatment from ',f(c.from,25),' to ',f(c.to,25),'.'],
+  ['(e) that the X-ray, laboratory test, etc. for which an expenditure of Rs. ',f(c.labrs,25),' was incurred were necessary and were undertaken on my advice at ',f(c.labat,45),' (name of hospital or laboratory).'],
+  ['(f) that I called on Dr. ',f(c.spec,45),' for specialist consultation and that the necessary approval of the ',f(c.cmo,40),' (name of the Chief Administrative Medical Officer of the State) as required under the rules, was obtained.']],
+ b:[['I certify that the patient has been under treatment at ',f(h,45),' hospital and that the service of the special nurses for which an expenditure of Rs. ',f(c.nurse,25),' was incurred vide bills and receipts attached, were essential for the recovery/prevention of serious deterioration in the condition of the patient.']],
+ ms:[['I certify that the patient has been under treatment at the ',f(h,45),' hospital and that the facilities provided were the minimum which were essential for the patient\'s treatment.']]}}
+const segHTML=segs=>segs.map(s=>typeof s==='string'?esc(s):s.inj?(s.inj==='were'?'<b>were</b>/<s>were not</s>':'<s>were</s>/<b>were not</b>'):D(s.f,s.w)).join('');
+function certHTML(M){const C=certParas(M),h=M.cert.hosp,P=a=>a.map(x=>'<p>'+segHTML(x)+'</p>').join('');
+  return `<div class="sheet cert">
+<div class="center" style="font-weight:bold;text-decoration:underline;font-size:11.5pt;margin-top:4mm">CERTIFICATE "B"</div>
+${P(C.intro)}<div class="center" style="text-decoration:underline;margin-top:5mm">Part A</div>${P(C.a1)}
+<table style="width:85%;margin:2mm auto"><tr><td>Name of medicine</td><td class="right">Price</td></tr>
+${M.cert.meds.map((m,k)=>`<tr><td>${k+1}. ${D(m[0],55)}</td><td class="right">${D(m[1],28)}</td></tr>`).join('')}</table>
+${P(C.a2)}
+<div class="sig">Signature and Designation of the<br>Medical Officer In-charge of the case<br>at the hospital</div>
+<div class="center" style="text-decoration:underline;margin-top:5mm">Part- B</div>${P(C.b)}
+<div class="sig">Signature of the Medical Officer<br>In-charge of the case at hospital</div>
+<div class="center" style="margin-top:4mm">COUNTERSIGNED<br>Medical Superintendent<br>${D(h,45)} Hospital</div>
+${P(C.ms)}
+<table style="margin-top:8mm"><tr><td>Place: ${D('',30)}</td><td class="right"><b>Medical Superintendent</b><br><b>Hospital</b></td></tr></table></div>`;
+}
+
+function render(){
+  const M=model();
+  document.getElementById((mode==='opd'?'o_':'i_')+'tot').textContent='Total: Rs. '+fmt(M.claim.total)+'/- ('+M.claim.words+' ONLY)';
+  P.innerHTML=mode==='opd'?claimHTML(M):claimHTML(M)+appHTML(M)+certHTML(M);
+  try{const d={mode};for(const e of F.elements)if(e.name)d[e.name]=e.type==='checkbox'?e.checked:e.value;localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}
+}
+
+/* ---------- Word (.docx) ---------- */
+function buildDocx(M){
+  const X=window.docx;
+  const {Document,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,BorderStyle,AlignmentType}=X;
+  const NB={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+  const NOB={top:NB,bottom:NB,left:NB,right:NB,insideHorizontal:NB,insideVertical:NB};
+  const CW=10000;
+  let FONT='Arial',SZ=20;
+  const R=(text,o={})=>new TextRun({text,font:FONT,size:o.size||SZ,bold:!!o.b,strike:!!o.s,italics:!!o.i,underline:o.u?{}:undefined});
+  const V=(val,n=30)=>val?R(val,{b:1}):R('.'.repeat(n));
+  const PP=(children,o={})=>new Paragraph({children,alignment:o.al,spacing:{before:o.before||0,after:o.after??30,line:o.line||240},indent:o.ind?{left:o.ind}:undefined,keepLines:true});
+  const YN=val=>val==='Yes'?[R('Yes',{b:1}),R('/'),R('No',{s:1})]:[R('Yes',{s:1}),R('/'),R('No',{b:1})];
+  const cell=(kids,w,span,al)=>new TableCell({children:[PP(kids,{al,after:20})],width:{size:w,type:WidthType.DXA},columnSpan:span,borders:{top:NB,bottom:NB,left:NB,right:NB}});
+  const table=(widths,rows)=>new Table({width:{size:widths.reduce((a,b)=>a+b,0),type:WidthType.DXA},columnWidths:widths,borders:NOB,rows:rows.map(cells=>new TableRow({children:cells}))});
+  const page={size:{width:11906,height:16838},margin:{top:700,bottom:600,left:1000,right:900}};
+  const sections=[];
+
+  /* claim form */
+  const c=M.claim,W=[420,600,4780,4200];
+  const r4=(n,l,label,val,al)=>[cell([R(n)],W[0]),cell([R(l)],W[1]),cell([R(label)],W[2]),cell(val,W[3],undefined,al)];
+  const rFull=(n,kids)=>[cell([R(n)],W[0]),cell(kids,W[1]+W[2]+W[3],3)];
+  const gap=()=>[cell([R('')],CW,4)];
+  const colon=val=>[R(':- '),...(Array.isArray(val)?val:[V(val,25)])];
+  const claimRows=[
+    rFull('1-',[R('(a) Name & Desgn. of the Principal CGHS Card Holder:- '),V(M.name)]),
+    r4('','(b)','CGHS Ben ID No.',colon(M.benid)),r4('','(c)','Employee Code No.',colon(M.emp)),
+    r4('','(d)','Ward Entitlement- Pvt./Semi-Pvt./General',colon(M.ward)),r4('','(e)','Full Address',colon(M.addr)),
+    r4('','(f)','Mobile telephone No. and e-mail address, if any',colon(M.mob)),gap(),
+    r4('2-','(a)',"Patient's Name",colon(M.pname)),r4('','(b)',"Patient's CGHS Ben ID No.",colon(M.pben)),
+    r4('','(c)','Relationship with the Principal CGHS cardholder',colon(M.rel)),gap(),
+    [cell([R('3-')],W[0]),new TableCell({width:{size:W[1]+W[2]+W[3],type:WidthType.DXA},columnSpan:3,borders:{top:NB,bottom:NB,left:NB,right:NB},
+      children:[PP([R('Name & address of the hospital/diagnostic center/imaging center where treatment is taken or tests done:- '),...(c.hosps.length>1?[]:[V(c.hosps[0],40)])],{after:20}),
+        ...(c.hosps.length>1?c.hosps.map((h,k)=>PP([R((k+1)+'. '+h,{b:1})],{after:10})):[])]})],gap(),
+    rFull('4-',[R('Whether the hospital/diagnostic/imaging center is empanelled under CGHS :- '),...YN(c.emp4)]),gap(),
+    rFull('5-',[R('Treatment for which reimbursement claimed')]),
+    r4('','(a)','OPD Treatment / Test & investigations',colon(c.opdtxt)),r4('','(b)','Indoor Treatment',colon(c.indtxt)),
+    r4('','(c)','Whether treatment was taken in emergency',YN(c.emg),AlignmentType.RIGHT),
+    r4('','(d)','Whether prior permission was taken for the treatment',YN(c.perm),AlignmentType.RIGHT),
+    r4('','(e)','Whether subscribing to any health/medical insurance scheme, if yes, amount claimed/received',[...YN(c.ins),...(c.insamt?[R('  ('+c.insamt+')',{b:1})]:[])],AlignmentType.RIGHT),gap(),
+    r4('','(f)','Details of Medical Advance taken, if any',colon(c.adv)),
+    [cell([R('')],W[0]),cell([R('(g)')],W[1]),cell([R('Total amount claimed')],W[2]+W[3],2)],
+    r4('','','     (a) OPD Treatment',colon([R(c.o,{b:1})])),r4('','','     (b) Indoor Treatment',colon([R(c.i,{b:1})])),
+    r4('','','     (c) Tests/Investigation',colon([R(c.t,{b:1})])),
+    [cell([R('')],W[0]),cell([R('')],W[1]),cell([R('     Total',{b:1})],W[2]),cell(colon([R('Rs. '+fmt(c.total)+'/-',{b:1})]),W[3])],
+    [cell([R('')],W[0]),cell([R('(RUPEES '+c.words+' ONLY)',{b:1})],W[1]+W[2]+W[3],3,AlignmentType.CENTER)],gap(),
+  ];
+  claimRows.push([cell([R('')],W[0]),cell([R('(h)')],W[1]),cell([R('Name of the Bank: '),V(M.bank)],W[2]),cell([R('SB A/c No. : '),V(M.acc)],W[3])]);
+  claimRows.push([cell([R('')],W[0]),cell([R('')],W[1]),cell([R('Branch MICR Code: '),V(M.micr)],W[2]),cell([R('IFSC Code - '),V(M.ifsc,20)],W[3])]);
+  sections.push({properties:{page},children:[
+    PP([R('For',{i:1}),R(' serving employees')],{al:AlignmentType.RIGHT}),
+    PP([R('CENTRAL GOVERNMENT HEALTH SCHEME',{b:1,u:1,size:24})],{al:AlignmentType.CENTER,before:60}),
+    PP([R('MEDICAL REIMBURSEMENT CLAIM FORM',{b:1,u:1})],{al:AlignmentType.CENTER,before:80}),
+    PP([R('(To be filled up by the Principal Card holder in '),R('BLOCK LETTERS)',{b:1})],{al:AlignmentType.CENTER,after:160}),
+    table(W,claimRows),
+    PP([R('DECLARATION',{b:1,u:1})],{al:AlignmentType.CENTER,before:200,after:60}),
+    PP([R('I hereby declare that the statements made in the application are true to the best of my knowledge and belief and the person for whom medical expenses were incurred is wholly dependent on me. I am a CGHS beneficiary and the CGHS card was valid at the time of treatment. I agree for the reimbursement as is admissible under the rules.')],{al:AlignmentType.JUSTIFIED,ind:450,after:200}),
+    table([450,4500,5050],[[cell([R('')],450),cell([R('Date : '),V(M.date,20)],4500),cell([R('')],5050)]]),
+    table([450,4500,5050],[[cell([R('')],450),cell([R('Place: '),V(M.place,20)],4500),cell([R('Signature of the Principal CGHS card holder',{b:1})],5050,undefined,AlignmentType.RIGHT)]]),
+  ]});
+  sections[0].children.splice(sections[0].children.length-1,0,PP([R('')],{after:300}));
+
+  if(M.mode==='ipd'){
+    /* application */
+    FONT='Times New Roman';SZ=22;
+    const AW=[600,9400];
+    sections.push({properties:{page},children:[
+      PP([R('Application for Medical Reimbursement',{b:1,u:1})],{al:AlignmentType.CENTER,before:300,after:300}),
+      table(AW,appRows(M).map(r=>[cell([R(r[0],{b:1})],AW[0]),cell([R(r[1]+' '),V(r[2],45)],AW[1])])),
+      PP([R('Enclosures:-')],{before:500}),...ENCL.map(e=>PP([R(e)])),
+      PP([R(APP_DECL)],{al:AlignmentType.JUSTIFIED,before:500,after:500}),
+      table([5000,5000],[[cell([R('Date: '),V(M.date,15)],5000),cell([R('Signature of Govt servant')],5000,undefined,AlignmentType.RIGHT)],
+        [cell([R('')],5000),cell([R('Designation: '),V(M.app.desg,15)],5000,undefined,AlignmentType.RIGHT)]])
+    ]});
+    /* certificate B */
+    FONT='Arial';SZ=19;
+    const C=certParas(M);
+    const segRuns=segs=>segs.flatMap(s=>typeof s==='string'?[R(s)]:s.inj!==undefined?(s.inj==='were'?[R('were',{b:1}),R('/'),R('were not',{s:1})]:[R('were',{s:1}),R('/'),R('were not',{b:1})]):[V(s.f,Math.round((s.w||40)*0.9))]);
+    const PJ=a=>a.map(x=>PP(segRuns(x),{al:AlignmentType.JUSTIFIED,after:60}));
+    const RA=lines=>lines.map((l,k)=>PP([R(l)],{al:AlignmentType.RIGHT,after:0,before:k?0:200}));
+    sections.push({properties:{page},children:[
+      PP([R('CERTIFICATE "B"',{b:1,u:1,size:23})],{al:AlignmentType.CENTER,before:100,after:100}),
+      ...PJ(C.intro),
+      PP([R('Part A',{u:1})],{al:AlignmentType.CENTER,before:160,after:60}),...PJ(C.a1),
+      table([1000,5500,2500,1000],[[cell([R('')],1000),cell([R('Name of medicine')],5500),cell([R('Price')],2500,undefined,AlignmentType.RIGHT),cell([R('')],1000)],
+        ...M.cert.meds.map((m,k)=>[cell([R('')],1000),cell([R((k+1)+'. '),V(m[0],45)],5500),cell([V(m[1],20)],2500,undefined,AlignmentType.RIGHT),cell([R('')],1000)])]),
+      ...PJ(C.a2),
+      ...RA(['Signature and Designation of the','Medical Officer In-charge of the case','at the hospital']),
+      PP([R('Part- B',{u:1})],{al:AlignmentType.CENTER,before:160,after:60}),...PJ(C.b),
+      ...RA(['Signature of the Medical Officer','In-charge of the case at hospital']),
+      PP([R('COUNTERSIGNED')],{al:AlignmentType.CENTER,before:120,after:0}),PP([R('Medical Superintendent')],{al:AlignmentType.CENTER,after:0}),
+      PP([V(M.cert.hosp,40),R(' Hospital')],{al:AlignmentType.CENTER,after:100}),
+      ...PJ(C.ms),
+      table([5000,5000],[[cell([R('Place: '),V('',25)],5000),cell([R('Medical Superintendent',{b:1})],5000,undefined,AlignmentType.RIGHT)],
+        [cell([R('')],5000),cell([R('Hospital',{b:1})],5000,undefined,AlignmentType.RIGHT)]])
+    ]});
+    sections[2].children.splice(sections[2].children.length-1,0,PP([R('')],{after:200}));
+  }
+  return new Document({creator:'CGHS Claim Filler',styles:{default:{document:{run:{font:'Arial',color:'000000'}}}},sections});
+}
+
+/* ---------- saving ---------- */
+async function saveFile(filename,blob){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);MSG.textContent=filename+' saved.';
+}
+const fname=ext=>'CGHS_'+mode.toUpperCase()+'_Claim_'+(v('date')||'form')+'.'+ext;
+
+async function doDocx(){
+  if(!window.docx){MSG.textContent='Word library load nahi hui — internet check karke page reload karo.';return}
+  MSG.textContent='Word file ban rahi hai…';
+  try{const blob=await docx.Packer.toBlob(buildDocx(model()));await saveFile(fname('docx'),blob)}
+  catch(e){MSG.textContent='Word file error: '+e.message;console.error(e)}
+}
+async function doPdf(){
+  if(!window.html2canvas||!window.jspdf){MSG.textContent='PDF library load nahi hui — internet check karke page reload karo.';return}
+  MSG.textContent='PDF ban rahi hai…';
+  try{
+    render();
+    const pdf=new jspdf.jsPDF({unit:'mm',format:'a4',compress:true});
+    const sheets=[...P.querySelectorAll('.sheet')];
+    for(let k=0;k<sheets.length;k++){
+      const el=sheets[k],sh=el.style.boxShadow;el.style.boxShadow='none';
+      const cv=await html2canvas(el,{scale:2.5,backgroundColor:'#ffffff',useCORS:true});
+      el.style.boxShadow=sh;
+      const ctx=cv.getContext('2d'),im=ctx.getImageData(0,0,cv.width,cv.height),d=im.data;
+      for(let j=0;j<d.length;j+=4){const g=0.299*d[j]+0.587*d[j+1]+0.114*d[j+2];d[j]=d[j+1]=d[j+2]=g}
+      ctx.putImageData(im,0,0);
+      if(k)pdf.addPage();
+      pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);
+    }
+    await saveFile(fname('pdf'),pdf.output('blob'));
+  }catch(e){MSG.textContent='PDF error: '+e.message;console.error(e)}
+}
+
+
+/* ---------- Bills OCR (OCR.space online API) ---------- */
+const OCR_KEY='helloworld'; // ocr.space/ocrapi/freekey se free key leke yahan daalo
+let bills={opd:[],ipd:[]},ocrCtl=null;
+const OM=document.getElementById('ocrMsg'),BL=document.getElementById('billList'),BR=document.getElementById('bRead'),BF=document.getElementById('billFiles');
+try{const b=JSON.parse(localStorage.getItem(KEY+'-bills')||'null');if(b&&b.opd&&b.ipd)bills=b}catch(e){}
+const saveBills=()=>{try{localStorage.setItem(KEY+'-bills',JSON.stringify(bills))}catch(e){}};
+BF.accept='image/*,application/pdf';BR.disabled=false;
+OM.textContent='Bills ki photo ya PDF chuno (ek saath kai). Amount/date ek baar zaroor check karna.';
+const CATS=['OPD','TEST','INDOOR','MEDICINE'];
+const num=t=>parseFloat(t.replace(/,/g,''));
+const TESTRX=/(patholog|x-ray|xray|usg|ultrasound|mri|ct scan|cbc|radiolog|investigation|lab|test|ecg|echo|profile|serum|blood)/i;
+function parseBill(text,file){
+  const lines=text.split(/\r?\n/).map(l=>l.replace(/\t+/g,' ').trim()).filter(Boolean),low=text.toLowerCase();
+  let amount=0;
+  for(const l of lines)if(/(net|grand|total|amount|paid|payable|received)/i.test(l)){
+    const ns=(l.match(/\d[\d,]*\.?\d{0,2}/g)||[]).map(num).filter(n=>n>=10&&n<1e7);if(ns.length)amount=Math.max(amount,...ns)}
+  const dm=text.match(/\b(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})\b/);
+  const date=dm?dm[1].padStart(2,'0')+'.'+dm[2].padStart(2,'0')+'.'+(dm[3].length===2?'20'+dm[3]:dm[3]):'';
+  const hl=lines.find(l=>/(hospital|diagnostic|clinic|centre|center|lab|patholog|medical|pharma|chemist|nursing|health|imaging|medanta|apollo|sgpgi|kgmu)/i.test(l)&&/[a-z]{3}/i.test(l))||lines.find(l=>/[a-z]{4}/i.test(l))||'';
+  const docL=lines.find(l=>/\bdr\.?\s+[a-z]/i.test(l));
+  const doctor=docL?(docL.match(/\bdr\.?\s+[a-z][a-z .]{2,40}/i)||[''])[0].trim():'';
+  const category=/(pharma|chemist|tab\.|cap\.|syrup|tablet|batch|expiry|exp\.)/i.test(low)?'MEDICINE':
+    /(ipd|admission|discharge|bed charge|room charge|ward)/i.test(low)?'INDOOR':
+    /(consult|opd|doctor fee|registration)/i.test(low)&&!TESTRX.test(low)?'OPD':TESTRX.test(low)?'TEST':'OPD';
+  return{hospital:hl.replace(/[^\w\s,.&()-]/g,'').trim().slice(0,80),address:'',date,bill_no:'',category,amount,doctor,doctor_designation:'',tests:[],medicines:[],diagnosis:'',admission_date:'',discharge_date:'',file:file.name};
+}
+/* free API limit 1 MB: photos ko chhota karke bhejte hain */
+async function shrink(file){
+  if(file.type==='application/pdf'||file.size<=950000)return file;
+  const img=await createImageBitmap(file);let w=img.width,h=img.height;const m=Math.max(w,h);if(m>2000){w=Math.round(w*2000/m);h=Math.round(h*2000/m)}
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
+  for(const q of [0.85,0.7,0.55,0.4]){const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));if(b.size<=950000)return new File([b],file.name.replace(/\.\w+$/,'')+'.jpg',{type:'image/jpeg'})}
+  throw new Error(file.name+' bahut badi hai');
+}
+async function ocrFile(file,signal){
+  const f=await shrink(file);
+  if(f.size>1000000)throw new Error(file.name+' 1 MB se badi hai (PDF chhota karo)');
+  const fd=new FormData();fd.append('apikey',OCR_KEY);fd.append('language','eng');fd.append('OCREngine','2');
+  fd.append('scale','true');fd.append('isTable','true');fd.append('detectOrientation','true');fd.append('file',f,f.name);
+  const r=await fetch('https://api.ocr.space/parse/image',{method:'POST',body:fd,signal});
+  if(!r.ok)throw new Error('OCR server '+r.status);
+  const j=await r.json();
+  if(j.IsErroredOnProcessing)throw new Error([].concat(j.ErrorMessage||'OCR error').join(' '));
+  return (j.ParsedResults||[]).map(x=>x.ParsedText||'').join('\n');
+}
+async function readBills(){
+  const files=[...BF.files];if(!files.length){OM.textContent='Pehle bill ki photos chuno.';return}
+  BR.disabled=true;ocrCtl=new AbortController();let added=0;const fails=[];
+  for(let k=0;k<files.length;k++){
+    OM.textContent=`Padh raha hoon… ${k+1}/${files.length}`;
+    try{const text=await ocrFile(files[k],ocrCtl.signal);
+      if(text.trim()){bills[mode].push(parseBill(text,files[k]));added++}else fails.push(files[k].name+' (text nahi mila)')}
+    catch(e){if(e.name==='AbortError')break;fails.push(files[k].name+': '+e.message)}
+  }
+  OM.textContent=(added?`${added} bill mile — form bhar diya. Neeche list check kar lo.`:'Koi bill nahi padh paya.')+(fails.length?' Dikkat: '+fails.join('; '):'');
+  BF.value='';BR.disabled=false;ocrCtl=null;saveBills();applyBills();
+}
+const fx=n=>Number.isInteger(n)?String(n):n.toFixed(2);
+const join=arr=>arr.length?arr.map(fx).join('+'):'0';
+const uniq=a=>[...new Set(a.filter(Boolean))];
+const setF=(n,val)=>{if(F.elements[n]&&val!==undefined&&val!==null)F.elements[n].value=val};
+function applyBills(){
+  drawBills();const L=bills[mode];if(!L.length){render();return}
+  const p=mode==='opd'?'o_':'i_',by=c=>L.filter(b=>b.category===c);
+  const opd=by('OPD'),test=by('TEST'),ind=by('INDOOR'),med=by('MEDICINE');
+  const hs=[];const seen=new Set();
+  for(const b of L){const key=b.hospital.toLowerCase();if(!b.hospital||seen.has(key))continue;seen.add(key);hs.push(b.hospital+(b.address&&!b.hospital.includes(b.address)?', '+b.address:''))}
+  if(hs.length)setF(p+'hosp',hs.join('\n'));
+  const amts=a=>a.map(b=>b.amount);
+  if(mode==='opd'){
+    setF('o_a_opd',join(amts(opd).concat(amts(med))));setF('o_a_test',join(amts(test)));setF('o_a_ind',join(amts(ind)));
+    const parts=[];if(opd.length||med.length)parts.push('OPD Treatment');if(test.length)parts.push('Test & Investigation');
+    setF('o_opdtxt',parts.join(' & ')||'No');setF('o_indtxt',ind.length?'Yes':'No');
+  }else{
+    setF('i_a_opd',join(amts(opd)));setF('i_a_test',join(amts(test)));setF('i_a_ind',join(amts(ind).concat(amts(med))));
+    setF('i_opdtxt',opd.length||test.length?'Yes':'No');setF('i_indtxt','Yes');
+    const docB=L.find(b=>b.doctor);if(docB){setF('doc',docB.doctor+(docB.doctor_designation?', '+docB.doctor_designation:''));setF('c_dr',docB.doctor.replace(/^dr\.?\s*/i,''))}
+    const cd=uniq(opd.map(b=>b.date));if(cd.length)setF('dconsult',cd.join(', '));
+    const tn=uniq(test.flatMap(b=>b.tests));if(tn.length)setF('pathname',tn.join(', '));
+    if(test.length){setF('pathchg',join(amts(test)));setF('c_labrs',fx(test.reduce((t,b)=>t+b.amount,0)));setF('c_labat',test[0].hospital)}
+    if(med.length)setF('medcost',join(amts(med)));
+    const meds=L.flatMap(b=>b.medicines).slice(0,8);if(meds.length)setF('c_meds',meds.map(m=>m.name+(m.price?' | '+fx(m.price):'')).join('\n'));
+    const dx=L.find(b=>b.diagnosis);if(dx)setF('c_dis',dx.diagnosis);
+    const ad=L.find(b=>b.admission_date),dc=L.find(b=>b.discharge_date);
+    if(ad)setF('c_from',ad.admission_date);if(dc)setF('c_to',dc.discharge_date);
+  }
+  render();
+}
+function drawBills(){
+  const L=bills[mode];
+  BL.innerHTML=L.map((b,k)=>`<div class="bill"><div class="h">${esc(b.hospital||'(naam nahi padha)')}<small>${esc([b.date,b.bill_no&&('Bill '+b.bill_no),b.file].filter(Boolean).join(' | '))}</small></div>
+<select data-k="${k}" data-f="category">${CATS.map(c=>`<option${c===b.category?' selected':''}>${c}</option>`).join('')}</select>
+<input data-k="${k}" data-f="amount" inputmode="decimal" value="${b.amount}" aria-label="Amount">
+<button type="button" data-del="${k}" aria-label="Remove bill">×</button></div>`).join('')+
+  (L.length?`<div class="total">Bills total: Rs. ${fx(L.reduce((t,b)=>t+b.amount,0))}/-</div>`:'');
+}
+BL.addEventListener('change',e=>{const t=e.target,k=+t.dataset.k;if(!t.dataset.f)return;const b=bills[mode][k];
+  if(t.dataset.f==='amount')b.amount=Number(t.value.replace(/[^0-9.]/g,''))||0;else b.category=t.value;saveBills();applyBills()});
+BL.addEventListener('input',e=>e.stopPropagation());
+BL.addEventListener('click',e=>{const d=e.target.dataset.del;if(d===undefined)return;bills[mode].splice(+d,1);saveBills();applyBills()});
+BR.onclick=readBills;
+document.getElementById('bClear').onclick=()=>{bills[mode]=[];saveBills();drawBills();OM.textContent='Bills list khali kar di (form ke values waise hi hain).'};
+
+function setMode(m){mode=m;document.body.classList.toggle('ipd',m==='ipd');document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));drawBills();render();window.scrollTo(0,0)}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){for(const k in d){const e=F.elements[k];if(!e)continue;if(e.type==='checkbox')e.checked=d[k];else e.value=d[k]}if(d.mode)mode=d.mode}}catch(e){}
+  if(!F.elements.date.value)F.elements.date.value=new Date().toISOString().slice(0,10);
+}
+F.addEventListener('input',render);F.addEventListener('change',render);
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+document.getElementById('bDocx').onclick=doDocx;
+document.getElementById('bPdf').onclick=doPdf;
+document.getElementById('print').onclick=()=>window.print();
+document.getElementById('reset').onclick=()=>{try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+'-bills')}catch(e){}location.reload()};
+load();setMode(mode);
+</script>
+</body>
+</html>
