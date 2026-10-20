@@ -1,4 +1,4 @@
-const CACHE='cghs-claim-v1';
+const CACHE='cghs-claim-v3';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png',
  'https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.iife.js',
  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
