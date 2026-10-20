@@ -585,17 +585,22 @@ function parseBill(text,file){
     /(consult|opd|doctor fee|registration)/i.test(low)&&!TESTRX.test(low)?'OPD':TESTRX.test(low)?'TEST':'OPD';
   return{hospital:hl.replace(/[^\w\s,.&()-]/g,'').trim().slice(0,80),address:'',date,bill_no:'',category,amount,doctor,doctor_designation:'',tests:[],medicines:[],diagnosis:'',admission_date:'',discharge_date:'',file:file.name};
 }
-/* free API limit 1 MB: photos ko chhota karke bhejte hain */
-async function shrink(file){
-  if(file.type==='application/pdf'||file.size<=950000)return file;
-  const img=await createImageBitmap(file);let w=img.width,h=img.height;const m=Math.max(w,h);if(m>2000){w=Math.round(w*2000/m);h=Math.round(h*2000/m)}
-  const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
-  for(const q of [0.85,0.7,0.55,0.4]){const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));if(b.size<=950000)return new File([b],file.name.replace(/\.\w+$/,'')+'.jpg',{type:'image/jpeg'})}
-  throw new Error(file.name+' bahut badi hai');
+/* free API limit 1 MB: badi photo / PDF ko chhota karke bhejte hain */
+const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function loadPdfJs(){return window.pdfjsLib?Promise.resolve():new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=PDFJS+'pdf.min.js';
+  sc.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';ok()};sc.onerror=()=>no(new Error('PDF reader load nahi hua — internet check karo'));document.head.appendChild(sc)})}
+async function canvasToJpeg(cv,name){
+  for(const q of [0.85,0.7,0.55,0.4]){const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',q));if(b.size<=950000)return new File([b],name+'.jpg',{type:'image/jpeg'})}
+  const c2=document.createElement('canvas');c2.width=Math.round(cv.width*0.7);c2.height=Math.round(cv.height*0.7);c2.getContext('2d').drawImage(cv,0,0,c2.width,c2.height);
+  return canvasToJpeg(c2,name);
 }
-async function ocrFile(file,signal){
-  const f=await shrink(file);
-  if(f.size>1000000)throw new Error(file.name+' 1 MB se badi hai (PDF chhota karo)');
+async function shrinkImage(file){
+  if(file.size<=950000)return file;
+  const img=await createImageBitmap(file);let w=img.width,h=img.height;const m=Math.max(w,h);if(m>2000){w=Math.round(w*2000/m);h=Math.round(h*2000/m)}
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+  return canvasToJpeg(cv,file.name.replace(/\.\w+$/,''));
+}
+async function ocrOne(f,signal){
   const fd=new FormData();fd.append('apikey',OCR_KEY);fd.append('language','eng');fd.append('OCREngine','2');
   fd.append('scale','true');fd.append('isTable','true');fd.append('detectOrientation','true');fd.append('file',f,f.name);
   const r=await fetch('https://api.ocr.space/parse/image',{method:'POST',body:fd,signal});
@@ -604,12 +609,32 @@ async function ocrFile(file,signal){
   if(j.IsErroredOnProcessing)throw new Error([].concat(j.ErrorMessage||'OCR error').join(' '));
   return (j.ParsedResults||[]).map(x=>x.ParsedText||'').join('\n');
 }
+const MAX_MB=50;
+async function ocrFile(file,signal,label){
+  if(file.size>MAX_MB*1024*1024)throw new Error(MAX_MB+' MB se badi file hai');
+  const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
+  if(!isPdf)return ocrOne(await shrinkImage(file),signal);
+  /* PDF: har page alag image banake padhte hain — koi page limit nahi */
+  await loadPdfJs();
+  const doc=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise,n=doc.numPages,texts=[];
+  for(let i=1;i<=n;i++){
+    if(signal&&signal.aborted)break;
+    OM.textContent=`${label} — page ${i}/${n} padh raha hoon…`;
+    const pg=await doc.getPage(i),v1=pg.getViewport({scale:1}),sc=Math.min(3,2000/Math.max(v1.width,v1.height)),vp=pg.getViewport({scale:sc});
+    const cv=document.createElement('canvas');cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+    await pg.render({canvasContext:ctx,viewport:vp}).promise;
+    texts.push(await ocrOne(await canvasToJpeg(cv,file.name.replace(/\.pdf$/i,'')+'-p'+i),signal));
+    pg.cleanup();cv.width=cv.height=0;
+  }
+  doc.destroy();
+  return texts.join('\n');
+}
 async function readBills(){
   const files=[...BF.files];if(!files.length){OM.textContent='Pehle bill ki photos chuno.';return}
   BR.disabled=true;ocrCtl=new AbortController();let added=0;const fails=[];
   for(let k=0;k<files.length;k++){
-    OM.textContent=`Padh raha hoon… ${k+1}/${files.length}`;
-    try{const text=await ocrFile(files[k],ocrCtl.signal);
+    const label=`File ${k+1}/${files.length}`;OM.textContent=label+' padh raha hoon…';
+    try{const text=await ocrFile(files[k],ocrCtl.signal,label);
       if(text.trim()){bills[mode].push(parseBill(text,files[k]));added++}else fails.push(files[k].name+' (text nahi mila)')}
     catch(e){if(e.name==='AbortError')break;fails.push(files[k].name+': '+e.message)}
   }
